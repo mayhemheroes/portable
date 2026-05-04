@@ -16,14 +16,17 @@
 
 FROM gcr.io/oss-fuzz-base/base-builder
 RUN apt-get -o Acquire::Retries=5 update && apt-get -o Acquire::Retries=5 install -y make cmake wget
-COPY . libressl
-RUN rm -rf libressl/mayhem
+# Download LibreSSL release tarball (has pre-generated arch headers, no update.sh needed)
+RUN for i in 1 2 3; do \
+      wget -q https://ftp.openbsd.org/pub/OpenBSD/LibreSSL/libressl-4.3.1.tar.gz && break || sleep 5; \
+    done && \
+    tar -xzf libressl-4.3.1.tar.gz && \
+    mv libressl-4.3.1 libressl && \
+    rm libressl-4.3.1.tar.gz
 RUN for i in 1 2 3; do git clone --depth 1 https://github.com/libressl-portable/fuzz.git libressl.fuzzers && break || sleep 5; done
 RUN for i in 1 2 3; do git clone --depth 1 https://github.com/guidovranken/cryptofuzz && break || sleep 5; done
 RUN for i in 1 2 3; do git clone --depth 1 https://github.com/guidovranken/cryptofuzz-corpora && break || sleep 5; done
 RUN for i in 1 2 3; do wget -q https://archives.boost.io/release/1.74.0/source/boost_1_74_0.tar.bz2 && break || sleep 5; done
-WORKDIR libressl
-RUN ./update.sh
 COPY mayhem/build.sh mayhem/*.options $SRC/
 
 ENV FUZZING_LANGUAGE=c++ SANITIZER=address
