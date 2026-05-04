@@ -18,10 +18,10 @@ FROM gcr.io/oss-fuzz-base/base-builder
 RUN apt-get -o Acquire::Retries=5 update && apt-get -o Acquire::Retries=5 install -y make cmake wget
 COPY . libressl
 RUN rm -rf libressl/mayhem
-RUN git clone --depth 1 https://github.com/libressl-portable/fuzz.git libressl.fuzzers
-RUN git clone --depth 1 https://github.com/guidovranken/cryptofuzz
-RUN git clone --depth 1 https://github.com/guidovranken/cryptofuzz-corpora
-RUN wget https://archives.boost.io/release/1.74.0/source/boost_1_74_0.tar.bz2
+RUN for i in 1 2 3; do git clone --depth 1 https://github.com/libressl-portable/fuzz.git libressl.fuzzers && break || sleep 5; done
+RUN for i in 1 2 3; do git clone --depth 1 https://github.com/guidovranken/cryptofuzz && break || sleep 5; done
+RUN for i in 1 2 3; do git clone --depth 1 https://github.com/guidovranken/cryptofuzz-corpora && break || sleep 5; done
+RUN for i in 1 2 3; do wget -q https://archives.boost.io/release/1.74.0/source/boost_1_74_0.tar.bz2 && break || sleep 5; done
 WORKDIR libressl
 RUN ./update.sh
 COPY mayhem/build.sh mayhem/*.options $SRC/
